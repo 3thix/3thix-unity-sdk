@@ -1,0 +1,26 @@
+{
+  "name": "com.3thix.unitysdk",
+  "version": "1.0.1",
+  "displayName": "3thix SDK",
+  "description": "A Unity SDK for 3thix payment integration",
+  "unity": "2021.3",
+  "author": {
+    "name": "3thix, Inc.",
+    "url": "https://3thix.com"
+  },
+  "documentationUrl": "https://github.com/Rocha-Games/3thix-Unity-SDK",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Rocha-Games/3thix-Unity-SDK.git"
+  },
+  "dependencies": {
+    "com.unity.nuget.newtonsoft-json": "3.2.1"
+  },
+  "samples": [
+    {
+      "displayName": "Demo",
+      "description": "A demo showing all 3thix features.",
+      "path": "Samples~/Demo"
+    }
+  ]
+}

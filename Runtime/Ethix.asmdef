@@ -1,0 +1,16 @@
+{
+    "name": "Ethix",
+    "rootNamespace": "",
+    "references": [
+        "GUID:9e287cc7b3c8a0245a7d36254472d3c8"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
