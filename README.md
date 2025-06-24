@@ -26,7 +26,7 @@
 - Add the following in Package Manager:
 
 ```
-https://github.com/Rocha-Games/3thix-Unity-SDK
+https://github.com/3thix/3thix-unity-sdk
 ```
 
 ## Setup
