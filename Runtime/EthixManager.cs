@@ -48,6 +48,77 @@ namespace Ethix
 #endif
         }
 
+        public void SyncUserWithEthix(string playerId, string firstName = "", string lastName = "", string email = "", string phone = "", Action<SyncUserResponse> onPaymentSuccess = null, Action<ErrorResponse> onPaymentFailure = null)
+        {
+            /* curl https://sandbox-api.3thix.com/entity/game/user/autosync \
+                --request POST \
+                --header 'Content-Type: application/json' \
+                --header 'X-Api-Key: YOUR_SECRET_TOKEN' \
+                --data '{
+                "users": [
+                    {
+                                "third_party_id": "123",
+                    "first_name": "John",
+                    "last_name": "Doe",
+                    "email": "user@example.com",
+                    "phone": "+1234567890"
+                    }
+                ]
+                }' */
+
+            var syncUserRequest = new SyncUserRequest
+            {
+                third_party_id = playerId,
+                first_name = firstName,
+                last_name = lastName,
+                email = email,
+                phone = phone
+            };
+
+            StartCoroutine(SendSyncUserRequest(syncUserRequest, response =>
+            {
+                Debug.Log($"User synced successfully with Entity ID: {response.entity_id}");
+                onPaymentSuccess?.Invoke(response);
+            }, error =>
+            {
+                Debug.LogError($"Error syncing user: {error.message}");
+                onPaymentFailure?.Invoke(error);
+            }));
+        }
+
+        private IEnumerator SendSyncUserRequest(SyncUserRequest syncUserRequest, Action<SyncUserResponse> onSuccess, Action<ErrorResponse> onFailure)
+        {
+            var url = SandboxSyncUserUrl;
+            var json = JsonConvert.SerializeObject(syncUserRequest);
+            var apiKey = _sandboxApiKey;
+
+            using var www = new UnityEngine.Networking.UnityWebRequest(url, "POST");
+
+            byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(json);
+            www.uploadHandler = new UnityEngine.Networking.UploadHandlerRaw(bodyRaw);
+            www.downloadHandler = new UnityEngine.Networking.DownloadHandlerBuffer();
+
+            www.SetRequestHeader("Content-Type", "application/json");
+            www.SetRequestHeader("X-Api-Key", $"{apiKey}");
+
+            yield return www.SendWebRequest();
+
+            if (www.result == UnityEngine.Networking.UnityWebRequest.Result.ConnectionError ||
+                www.result == UnityEngine.Networking.UnityWebRequest.Result.ProtocolError)
+            {
+                Debug.LogError($"Error sending payment request: {www.error}");
+                var errorResponse = JsonConvert.DeserializeObject<ErrorResponse>(www.downloadHandler.text);
+                onFailure?.Invoke(errorResponse);
+            }
+            else
+            {
+                var response = JsonConvert.DeserializeObject<SyncUserResponse>(www.downloadHandler.text);
+                onSuccess?.Invoke(response);
+            }
+
+            www.Dispose();
+        }
+
         public void CreatePayment(Rails rail, Currencies currency, Action<PaymentDetailsResponse> onPaymentSuccess = null, Action<ErrorResponse> onPaymentFailure = null)
         {
             var amount = 0.0f;
