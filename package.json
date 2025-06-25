@@ -1,6 +1,6 @@
 {
   "name": "com.3thix.unitysdk",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "displayName": "3thix SDK",
   "description": "A Unity SDK for 3thix payment integration",
   "unity": "2021.3",
