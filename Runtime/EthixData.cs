@@ -12,6 +12,7 @@ namespace Ethix
         public const string SandboxCreatePaymentUrl = "https://sandbox-api.3thix.com/order/payment/create";
         public const string SandboxPaymentPayUrl = "https://sandbox-pay.3thix.com/?invoiceId=";
         public const string SandboxPaymentResultUrl = "https://sandbox-api.3thix.com/invoice/details/get";
+        public const string SandboxSyncUserUrl = "https://sandbox-api.3thix.com/entity/game/user/autosync";
 
         public enum Rails
         {
@@ -39,6 +40,25 @@ namespace Ethix
             CAD,
             CNY,
             EUR
+        }
+
+
+        [Serializable]
+        public struct SyncUserRequest
+        {
+            public string third_party_id { get; set; }
+            public string first_name { get; set; }
+            public string last_name { get; set; }
+            public string email { get; set; }
+            public string phone { get; set; }
+        }
+
+
+        [Serializable]
+        public struct SyncUserResponse
+        {
+            public string entity_id { get; set; }
+            public string third_party_id { get; set; }
         }
 
         [Serializable]
