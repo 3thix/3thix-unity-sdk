@@ -8,10 +8,10 @@
     "name": "3thix, Inc.",
     "url": "https://3thix.com"
   },
-  "documentationUrl": "https://github.com/Rocha-Games/3thix-Unity-SDK",
+  "documentationUrl": "https://github.com/3thix/3thix-unity-sdk",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Rocha-Games/3thix-Unity-SDK.git"
+    "url": "https://github.com/3thix/3thix-unity-sdk.git"
   },
   "dependencies": {
     "com.unity.nuget.newtonsoft-json": "3.2.1"
