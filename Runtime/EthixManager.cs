@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using UnityEngine;
+using VoltstroStudios.UnityWebBrowser;
 using static Ethix.EthixData;
 
 namespace Ethix
@@ -14,6 +15,8 @@ namespace Ethix
         [SerializeField] private string _thirdPartyId = "trench-racer-sandbox";
         [SerializeField] private string _sandboxApiKey = "E1eI9adWmXpATkqbxF1ZJQCa18uRikDphqkYAGdgavL47CoCVpm69HzoESUcteJ6";
         private List<PaymentRequestItem> _paymentRequestCart = new();
+        private WebBrowserUIBasic _webBrowserUI;
+        private bool _isWebBrowserReady;
 
         private void Awake()
         {
@@ -112,7 +115,7 @@ namespace Ethix
                 // Open the in-game web browser UI and load the payment URL
                 _webBrowserUI.transform.root.gameObject.SetActive(true);
                 yield return new WaitUntil(() => _isWebBrowserReady);
-                _webBrowserUI.browserClient?.LoadUrl($"{_sandboxPaymentPayUrl}{response.invoice_id}");
+                _webBrowserUI.browserClient?.LoadUrl($"{SandboxPaymentPayUrl}{response.invoice_id}");
 #else
                 Application.OpenURL($"{SandboxPaymentPayUrl}{response.invoice_id}");
 #endif
@@ -177,8 +180,8 @@ namespace Ethix
                     };
                     onPaymentFailure?.Invoke(errorResponse);
                     _webBrowserUI.transform.root.gameObject.SetActive(false);
-                www.Dispose();
-                break;
+                    www.Dispose();
+                    break;
                 }
 #endif
                 www.Dispose();
