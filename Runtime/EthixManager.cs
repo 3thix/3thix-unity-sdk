@@ -48,7 +48,7 @@ namespace Ethix
 #endif
         }
 
-        public void SyncUserWithEthix(string playerId, string firstName = "", string lastName = "", string email = "", string phone = "", Action<SyncUserResponse> onPaymentSuccess = null, Action<ErrorResponse> onPaymentFailure = null)
+        public void SyncUserWithEthix(string playerId, string firstName = "", string lastName = "", string email = "", string phone = "", Action<SyncUserResponse> onRequestSuccess = null, Action<ErrorResponse> onRequestFailure = null)
         {
             var syncUserRequest = new SyncUserRequest
             {
@@ -62,11 +62,11 @@ namespace Ethix
             StartCoroutine(SendSyncUserRequest(syncUserRequest, response =>
             {
                 Debug.Log($"User synced successfully with Entity ID: {response.entity_id}");
-                onPaymentSuccess?.Invoke(response);
+                onRequestSuccess?.Invoke(response);
             }, error =>
             {
                 Debug.LogError($"Error syncing user: {error.message}");
-                onPaymentFailure?.Invoke(error);
+                onRequestFailure?.Invoke(error);
             }));
         }
 
