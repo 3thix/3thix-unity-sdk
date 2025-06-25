@@ -14,8 +14,8 @@ namespace Ethix
     {
         public static EthixManager Instance { get; private set; }
 
-        [SerializeField] private string _thirdPartyId = "trench-racer-sandbox";
-        [SerializeField] private string _sandboxApiKey = "E1eI9adWmXpATkqbxF1ZJQCa18uRikDphqkYAGdgavL47CoCVpm69HzoESUcteJ6";
+        [SerializeField] private string _thirdPartyId = "";
+        [SerializeField] private string _sandboxApiKey = "";
         private List<PaymentRequestItem> _paymentRequestCart = new();
         private WebBrowserUIBasic _webBrowserUI;
         private bool _isWebBrowserReady;
