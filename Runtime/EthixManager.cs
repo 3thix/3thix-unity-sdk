@@ -50,22 +50,6 @@ namespace Ethix
 
         public void SyncUserWithEthix(string playerId, string firstName = "", string lastName = "", string email = "", string phone = "", Action<SyncUserResponse> onPaymentSuccess = null, Action<ErrorResponse> onPaymentFailure = null)
         {
-            /* curl https://sandbox-api.3thix.com/entity/game/user/autosync \
-                --request POST \
-                --header 'Content-Type: application/json' \
-                --header 'X-Api-Key: YOUR_SECRET_TOKEN' \
-                --data '{
-                "users": [
-                    {
-                                "third_party_id": "123",
-                    "first_name": "John",
-                    "last_name": "Doe",
-                    "email": "user@example.com",
-                    "phone": "+1234567890"
-                    }
-                ]
-                }' */
-
             var syncUserRequest = new SyncUserRequest
             {
                 third_party_id = playerId,
