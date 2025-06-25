@@ -3,7 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using UnityEngine;
+#if !PLATFORM_WEBGL
 using VoltstroStudios.UnityWebBrowser;
+#endif
 using static Ethix.EthixData;
 
 namespace Ethix
