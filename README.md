@@ -26,7 +26,7 @@
 - Add the following in Package Manager:
 
 ```
-https://github.com/3thix/3thix-unity-sdk
+https://github.com/3thix/3thix-unity-sdk.git
 ```
 
 ## Setup
