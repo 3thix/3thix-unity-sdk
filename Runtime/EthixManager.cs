@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using UnityEngine;
-#if !PLATFORM_WEBGL
+#if UNITY_STANDALONE_WIN || UNITY_STANDALONE_OSX
 using VoltstroStudios.UnityWebBrowser;
 #endif
 using static Ethix.EthixData;
@@ -17,8 +17,10 @@ namespace Ethix
         [SerializeField] private string _thirdPartyId = "";
         [SerializeField] private string _sandboxApiKey = "";
         private List<PaymentRequestItem> _paymentRequestCart = new();
+#if UNITY_STANDALONE_WIN || UNITY_STANDALONE_OSX
         private WebBrowserUIBasic _webBrowserUI;
         private bool _isWebBrowserReady;
+#endif
 
         private void Awake()
         {
@@ -30,7 +32,7 @@ namespace Ethix
 
         void Start()
         {
-#if !PLATFORM_WEBGL
+#if UNITY_STANDALONE_WIN || UNITY_STANDALONE_OSX
             _webBrowserUI = FindFirstObjectByType<WebBrowserUIBasic>(FindObjectsInactive.Include);
             if (_webBrowserUI == null)
                 Debug.LogError("WebBrowserUIBasic not found in the scene. Please ensure it is present.");
@@ -113,7 +115,7 @@ namespace Ethix
                 // For example, if the player doesn't pay right away, you can still reference the order and invoice IDs later and know what the player wanted to buy
                 ////////
 
-#if !PLATFORM_WEBGL
+#if UNITY_STANDALONE_WIN || UNITY_STANDALONE_OSX
                 // Open the in-game web browser UI and load the payment URL
                 _webBrowserUI.transform.root.gameObject.SetActive(true);
                 yield return new WaitUntil(() => _isWebBrowserReady);
@@ -152,7 +154,7 @@ namespace Ethix
                 {
                     Debug.LogError($"Error polling payment result: {www.error}");
                     var errorResponse = JsonConvert.DeserializeObject<ErrorResponse>(www.downloadHandler.text);
-#if !PLATFORM_WEBGL
+#if UNITY_STANDALONE_WIN || UNITY_STANDALONE_OSX
                     _webBrowserUI.transform.root.gameObject.SetActive(false);
 #endif
                     onPaymentFailure?.Invoke(errorResponse);
@@ -164,14 +166,14 @@ namespace Ethix
                 if (response.invoice.status == "PAID") //if paid or the web browser is closed
                 {
                     Debug.Log($"Payment completed for Invoice ID: {response.invoice.id}");
-#if !PLATFORM_WEBGL
+#if UNITY_STANDALONE_WIN || UNITY_STANDALONE_OSX
                     _webBrowserUI.transform.root.gameObject.SetActive(false);
 #endif
                     onPaymentSuccess?.Invoke(response);
                     www.Dispose();
                     break;
                 }
-#if !PLATFORM_WEBGL
+#if UNITY_STANDALONE_WIN || UNITY_STANDALONE_OSX
                 else if (_webBrowserUI.transform.root.gameObject.activeSelf == false)
                 {
                     Debug.Log("Web browser closed or payment not completed.");
