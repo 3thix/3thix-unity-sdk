@@ -180,7 +180,7 @@ namespace Ethix
                 yield return new WaitUntil(() => _isWebBrowserReady);
                 _webBrowserUI.browserClient?.LoadUrl($"{urlPayment}{response.invoice_id}");
 #else
-                Application.OpenURL($"{url}{response.invoice_id}");
+                Application.OpenURL($"{urlPayment}{response.invoice_id}");
 #endif
                 StartCoroutine(PollPaymentResult(response.invoice_id, onPaymentSuccess, onPaymentFailure));
             }
