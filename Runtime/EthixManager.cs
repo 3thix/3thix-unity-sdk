@@ -16,7 +16,10 @@ namespace Ethix
 
         [SerializeField] private string _thirdPartyId = "";
         [SerializeField] private string _sandboxApiKey = "";
+        [SerializeField] private string _productionApiKey = "";
+        [SerializeField] private bool _isSandbox = true;
         private List<PaymentRequestItem> _paymentRequestCart = new();
+
 #if UNITY_STANDALONE_WIN || UNITY_STANDALONE_OSX
         private WebBrowserUIBasic _webBrowserUI;
         private bool _isWebBrowserReady;
@@ -72,9 +75,9 @@ namespace Ethix
 
         private IEnumerator SendSyncUserRequest(SyncUserRequest syncUserRequest, Action<SyncUserResponse> onSuccess, Action<ErrorResponse> onFailure)
         {
-            var url = SandboxSyncUserUrl;
+            var url = _isSandbox ? SandboxSyncUserUrl : ProductionSyncUserUrl;
             var json = JsonConvert.SerializeObject(syncUserRequest);
-            var apiKey = _sandboxApiKey;
+            var apiKey = _isSandbox ? _sandboxApiKey : _productionApiKey;
 
             using var www = new UnityEngine.Networking.UnityWebRequest(url, "POST");
 
@@ -141,9 +144,9 @@ namespace Ethix
 
         private IEnumerator SendPaymentRequest(PaymentRequest paymentRequest, Action<PaymentDetailsResponse> onPaymentSuccess = null, Action<ErrorResponse> onPaymentFailure = null)
         {
-            var url = SandboxCreatePaymentUrl;
+            var url = _isSandbox ? SandboxCreatePaymentUrl : ProductionCreatePaymentUrl;
             var json = JsonConvert.SerializeObject(paymentRequest);
-            var apiKey = _sandboxApiKey;
+            var apiKey = _isSandbox ? _sandboxApiKey : _productionApiKey;
 
             using var www = new UnityEngine.Networking.UnityWebRequest(url, "POST");
 
@@ -170,13 +173,14 @@ namespace Ethix
                 // For example, if the player doesn't pay right away, you can still reference the order and invoice IDs later and know what the player wanted to buy
                 ////////
 
+                var urlPayment = _isSandbox ? SandboxPaymentPayUrl : ProductionPaymentPayUrl;
 #if UNITY_STANDALONE_WIN || UNITY_STANDALONE_OSX
                 // Open the in-game web browser UI and load the payment URL
                 _webBrowserUI.transform.root.gameObject.SetActive(true);
                 yield return new WaitUntil(() => _isWebBrowserReady);
-                _webBrowserUI.browserClient?.LoadUrl($"{SandboxPaymentPayUrl}{response.invoice_id}");
+                _webBrowserUI.browserClient?.LoadUrl($"{urlPayment}{response.invoice_id}");
 #else
-                Application.OpenURL($"{SandboxPaymentPayUrl}{response.invoice_id}");
+                Application.OpenURL($"{url}{response.invoice_id}");
 #endif
                 StartCoroutine(PollPaymentResult(response.invoice_id, onPaymentSuccess, onPaymentFailure));
             }
@@ -192,12 +196,14 @@ namespace Ethix
                 id = invoiceId
             };
 
+            var url = _isSandbox ? SandboxPaymentResultUrl : ProductionPaymentResultUrl;
+
             var body = JsonConvert.SerializeObject(paymentDetails);
             byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(body);
 
             while (true)
             {
-                using var www = new UnityEngine.Networking.UnityWebRequest(SandboxPaymentResultUrl, "POST");
+                using var www = new UnityEngine.Networking.UnityWebRequest(url, "POST");
                 www.downloadHandler = new UnityEngine.Networking.DownloadHandlerBuffer();
                 www.uploadHandler = new UnityEngine.Networking.UploadHandlerRaw(bodyRaw);
                 www.SetRequestHeader("Content-Type", "application/json");

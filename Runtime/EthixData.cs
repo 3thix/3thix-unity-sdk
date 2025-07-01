@@ -14,6 +14,11 @@ namespace Ethix
         public const string SandboxPaymentResultUrl = "https://sandbox-api.3thix.com/invoice/details/get";
         public const string SandboxSyncUserUrl = "https://sandbox-api.3thix.com/entity/game/user/autosync";
 
+        public const string ProductionCreatePaymentUrl = "https://api.3thix.com/order/payment/create";
+        public const string ProductionPaymentPayUrl = "https://pay.3thix.com/?invoiceId=";
+        public const string ProductionPaymentResultUrl = "https://api.3thix.com/invoice/details/get";
+        public const string ProductionSyncUserUrl = "https://api.3thix.com/entity/game/user/autosync";
+
         public enum Rails
         {
             CREDIT_CARD,
