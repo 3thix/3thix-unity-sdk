@@ -4,6 +4,7 @@
   "displayName": "3thix SDK",
   "description": "A Unity SDK for 3thix payment integration",
   "unity": "2021.4",
+  "hideInEditor": false,
   "author": {
     "name": "3thix, Inc.",
     "url": "https://3thix.com"
