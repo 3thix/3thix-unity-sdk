@@ -117,7 +117,7 @@ namespace Ethix.Demo
             // Here you would typically handle the checkout process, such as creating a payment request.
             foreach (var item in CartItems)
             {
-                EthixManager.Instance.AddProductToCart(item.ShopItemSO.ItemName, item.AmountInCart, item.ShopItemSO.Price.ToString("F2"));
+                EthixManager.Instance.AddProductToPaymentCart(item.ShopItemSO.ItemName, item.AmountInCart, item.ShopItemSO.Price.ToString("F2"));
             }
 
             EthixManager.Instance.CreatePayment(Rails.CREDIT_CARD, Currencies.USD, OnPaymentSuccess, OnPaymentFailure);
