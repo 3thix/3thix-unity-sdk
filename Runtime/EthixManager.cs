@@ -100,7 +100,7 @@ namespace Ethix
             if (www.result == UnityEngine.Networking.UnityWebRequest.Result.ConnectionError ||
                 www.result == UnityEngine.Networking.UnityWebRequest.Result.ProtocolError)
             {
-                Debug.LogError($"Error sending payment request: {www.error}");
+                Debug.LogError($"Error syncing user: {www.error}");
                 var errorResponse = JsonConvert.DeserializeObject<ErrorResponse>(www.downloadHandler.text);
                 onFailure?.Invoke(errorResponse);
             }
@@ -288,7 +288,7 @@ namespace Ethix
 
         public void CreatePurchaseOrder(Currencies destinationCurrency, Action<PurchaseDetailsResponse> onPurchasePaymentSuccess = null, Action<ErrorResponse> onPurchasePaymentFailure = null)
         {
-            PurchaseRequest paymentRequest = new()
+            PurchaseRequest purchaseRequest = new()
             {
                 fulfillment_entity_id = _entityId,
                 destination_currency = destinationCurrency.ToString(),
@@ -298,14 +298,14 @@ namespace Ethix
             ////////
             // Here you would typically send this data to your backend so you can reference it later
             ////////
-            Debug.Log($"Creating Purchase Order: {paymentRequest.fulfillment_entity_id}, {paymentRequest.destination_currency}, # items: {_purchaseRequestCart.Count}");
+            Debug.Log($"Creating Purchase Order: {purchaseRequest.fulfillment_entity_id}, {purchaseRequest.destination_currency}, # items: {_purchaseRequestCart.Count}");
             Debug.Log("For Items:");
             foreach (var item in _purchaseRequestCart)
             {
                 Debug.Log($"- {item.rail} {item.currency}, Amount: {item.amount}");
             }
 
-            StartCoroutine(SendPurchaseOrderRequest(paymentRequest, onPurchasePaymentSuccess, onPurchasePaymentFailure));
+            StartCoroutine(SendPurchaseOrderRequest(purchaseRequest, onPurchasePaymentSuccess, onPurchasePaymentFailure));
         }
 
 
@@ -329,14 +329,14 @@ namespace Ethix
             if (www.result == UnityEngine.Networking.UnityWebRequest.Result.ConnectionError ||
                 www.result == UnityEngine.Networking.UnityWebRequest.Result.ProtocolError)
             {
-                Debug.LogError($"Error sending payment request: {www.error}");
+                Debug.LogError($"Error sending purchase order request: {www.error}");
             }
             else
             {
                 var response = JsonConvert.DeserializeObject<PurchaseRequestResponse>(www.downloadHandler.text);
 
                 ////////
-                // Here you would typically send the PaymentRequest and PaymentRequestResponse to your backend so you can reference it later
+                // Here you would typically send the PurchaseRequest and PurchaseRequestResponse to your backend so you can reference it later
                 // For example, if the player doesn't pay right away, you can still reference the order and invoice IDs later and know what the player wanted to buy
                 ////////
 
