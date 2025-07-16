@@ -9,14 +9,32 @@ namespace Ethix
     public class EthixData
     {
 
+        //Sandbox Payments
         public const string SandboxCreatePaymentUrl = "https://sandbox-api.3thix.com/order/payment/create";
         public const string SandboxPaymentPayUrl = "https://sandbox-pay.3thix.com/?invoiceId=";
         public const string SandboxPaymentResultUrl = "https://sandbox-api.3thix.com/invoice/details/get";
+
+        //Sandbox Purchases
+        public const string SandboxCreatePurchaseUrl = "https://sandbox-api.3thix.com/order/purchase/create";
+        public const string SandboxPurchasePayUrl = "https://sandbox-pay.3thix.com/?invoiceId=";
+        public const string SandboxPurchaseResultUrl = "https://sandbox-api.3thix.com/invoice/details/get";
+
+        //Sandbox User Sync
         public const string SandboxSyncUserUrl = "https://sandbox-api.3thix.com/entity/game/user/autosync";
 
+
+
+        //Production Payments
         public const string ProductionCreatePaymentUrl = "https://api.3thix.com/order/payment/create";
-        public const string ProductionPaymentPayUrl = "https://pay.3thix.com/?invoiceId=";
         public const string ProductionPaymentResultUrl = "https://api.3thix.com/invoice/details/get";
+        public const string ProductionPaymentPayUrl = "https://pay.3thix.com/?invoiceId=";
+
+        //Production Purchases
+        public const string ProductionCreatePurchaseUrl = "https://api.3thix.com/order/purchase/create";
+        public const string ProductionPurchasePayUrl = "https://pay.3thix.com/?invoiceId=";
+        public const string ProductionPurchaseResultUrl = "https://api.3thix.com/invoice/details/get";
+
+        //Production User Sync
         public const string ProductionSyncUserUrl = "https://api.3thix.com/entity/game/user/autosync";
 
         public enum Rails
@@ -36,6 +54,7 @@ namespace Ethix
             KONBINI,
             AUPAY,
             SEI,
+            SOLANA
         }
 
         public enum Currencies
@@ -44,7 +63,8 @@ namespace Ethix
             BRL,
             CAD,
             CNY,
-            EUR
+            EUR,
+            SOL
         }
 
 
@@ -93,6 +113,32 @@ namespace Ethix
         }
 
         [Serializable]
+        public struct PurchaseRequest
+        {
+            public string fulfillment_entity_id { get; set; } // player who's receiving the item/currency
+            public string destination_currency { get; set; } //What currency the player is paying with
+            public List<PurchaseRequestItem> carts { get; set; }
+        }
+
+        [Serializable]
+        public struct PurchaseRequestItem
+        {
+            public string rail { get; set; } //"SOLANA"
+            public string currency { get; set; } // "SOL"
+            public string amount { get; set; } // "0.00001"
+
+        }
+
+        [Serializable]
+        public struct PurchaseRequestResponse
+        {
+            public string order_id { get; set; }
+            public string invoice_id { get; set; }
+            public string invoice_amount { get; set; }
+            public string invoice_currency { get; set; }
+        }
+
+        [Serializable]
         public class Invoice
         {
             public string id { get; set; }
@@ -125,6 +171,20 @@ namespace Ethix
             public string destination_total { get; set; }
             public string status { get; set; }
             public string created_at { get; set; }
+        }
+
+
+        [Serializable]
+        public class PurchaseDetailsResponse
+        {
+            public Invoice invoice { get; set; }
+            public Order order { get; set; }
+        }
+
+        [Serializable]
+        public class PurchaseDetailsBody
+        {
+            public string id { get; set; } // "invoice_id"
         }
 
         [Serializable]

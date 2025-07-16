@@ -19,6 +19,12 @@ namespace Ethix
         [SerializeField] private string _productionApiKey = "";
         [SerializeField] private bool _isSandbox = true;
         private List<PaymentRequestItem> _paymentRequestCart = new();
+        private List<PurchaseRequestItem> _purchaseRequestCart = new();
+
+        private string _entityId = "";
+        public string ThirdPartyId => _thirdPartyId;
+        public string EntityId => _entityId;
+
 
 #if UNITY_STANDALONE_WIN || UNITY_STANDALONE_OSX
         private WebBrowserUIBasic _webBrowserUI;
@@ -65,6 +71,7 @@ namespace Ethix
             StartCoroutine(SendSyncUserRequest(syncUserRequest, response =>
             {
                 Debug.Log($"User synced successfully with Entity ID: {response.entity_id}");
+                _entityId = response.entity_id;
                 onRequestSuccess?.Invoke(response);
             }, error =>
             {
@@ -86,7 +93,7 @@ namespace Ethix
             www.downloadHandler = new UnityEngine.Networking.DownloadHandlerBuffer();
 
             www.SetRequestHeader("Content-Type", "application/json");
-            www.SetRequestHeader("X-Api-Key", $"{apiKey}");
+            www.SetRequestHeader("X-Api-Key", apiKey);
 
             yield return www.SendWebRequest();
 
@@ -100,6 +107,8 @@ namespace Ethix
             else
             {
                 var response = JsonConvert.DeserializeObject<SyncUserResponse>(www.downloadHandler.text);
+                _entityId = response.entity_id;
+                Debug.Log($"User synced with Entity ID: {_entityId}");
                 onSuccess?.Invoke(response);
             }
 
@@ -155,7 +164,7 @@ namespace Ethix
             www.downloadHandler = new UnityEngine.Networking.DownloadHandlerBuffer();
 
             www.SetRequestHeader("Content-Type", "application/json");
-            www.SetRequestHeader("X-Api-Key", $"{apiKey}");
+            www.SetRequestHeader("X-Api-Key", apiKey);
 
             yield return www.SendWebRequest();
 
@@ -201,7 +210,9 @@ namespace Ethix
             var body = JsonConvert.SerializeObject(paymentDetails);
             byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(body);
 
-            while (true)
+            float timeout = 300f; // 5 minutes timeout - may take time to link ACH accounts
+            float elapsed = 0f;
+            while (elapsed < timeout)
             {
                 using var www = new UnityEngine.Networking.UnityWebRequest(url, "POST");
                 www.downloadHandler = new UnityEngine.Networking.DownloadHandlerBuffer();
@@ -235,7 +246,7 @@ namespace Ethix
                     break;
                 }
 #if UNITY_STANDALONE_WIN || UNITY_STANDALONE_OSX
-                else if (_webBrowserUI.transform.root.gameObject.activeSelf == false)
+                else if (_webBrowserUI != null && _webBrowserUI.transform.root.gameObject.activeSelf == false)
                 {
                     Debug.Log("Web browser closed or payment not completed.");
                     var errorResponse = new ErrorResponse
@@ -250,11 +261,12 @@ namespace Ethix
                 }
 #endif
                 www.Dispose();
-                yield return new WaitForSeconds(5f); // Poll every 5 seconds
+                yield return new WaitForSeconds(1f); // Poll every 1 second
+                elapsed += 1f;
             }
         }
 
-        public void AddProductToCart(string productName, int quantity, string price)
+        public void AddProductToPaymentCart(string productName, int quantity, string price)
         {
             _paymentRequestCart.Add(new PaymentRequestItem
             {
@@ -264,9 +276,152 @@ namespace Ethix
             });
         }
 
-        public void CreatePurchaseOrder()
+        public void AddProductToPurchaseCart(Rails rail, Currencies currency, string price)
         {
-            //TODO
+            _purchaseRequestCart.Add(new PurchaseRequestItem
+            {
+                rail = rail.ToString(),
+                currency = currency.ToString(),
+                amount = price
+            });
+        }
+
+        public void CreatePurchaseOrder(Currencies destinationCurrency, Action<PurchaseDetailsResponse> onPurchasePaymentSuccess = null, Action<ErrorResponse> onPurchasePaymentFailure = null)
+        {
+            PurchaseRequest paymentRequest = new()
+            {
+                fulfillment_entity_id = _entityId,
+                destination_currency = destinationCurrency.ToString(),
+                carts = _purchaseRequestCart
+            };
+
+            ////////
+            // Here you would typically send this data to your backend so you can reference it later
+            ////////
+            Debug.Log($"Creating Purchase Order: {paymentRequest.fulfillment_entity_id}, {paymentRequest.destination_currency}, # items: {_purchaseRequestCart.Count}");
+            Debug.Log("For Items:");
+            foreach (var item in _purchaseRequestCart)
+            {
+                Debug.Log($"- {item.rail} {item.currency}, Amount: {item.amount}");
+            }
+
+            StartCoroutine(SendPurchaseOrderRequest(paymentRequest, onPurchasePaymentSuccess, onPurchasePaymentFailure));
+        }
+
+
+        private IEnumerator SendPurchaseOrderRequest(PurchaseRequest purchaseRequest, Action<PurchaseDetailsResponse> onPurchasePaymentSuccess = null, Action<ErrorResponse> onPurchasePaymentFailure = null)
+        {
+            var url = _isSandbox ? SandboxCreatePurchaseUrl : ProductionCreatePurchaseUrl;
+            var json = JsonConvert.SerializeObject(purchaseRequest);
+            var apiKey = _isSandbox ? _sandboxApiKey : _productionApiKey;
+
+            using var www = new UnityEngine.Networking.UnityWebRequest(url, "POST");
+
+            byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(json);
+            www.uploadHandler = new UnityEngine.Networking.UploadHandlerRaw(bodyRaw);
+            www.downloadHandler = new UnityEngine.Networking.DownloadHandlerBuffer();
+
+            www.SetRequestHeader("Content-Type", "application/json");
+            www.SetRequestHeader("X-Api-Key", apiKey);
+
+            yield return www.SendWebRequest();
+
+            if (www.result == UnityEngine.Networking.UnityWebRequest.Result.ConnectionError ||
+                www.result == UnityEngine.Networking.UnityWebRequest.Result.ProtocolError)
+            {
+                Debug.LogError($"Error sending payment request: {www.error}");
+            }
+            else
+            {
+                var response = JsonConvert.DeserializeObject<PurchaseRequestResponse>(www.downloadHandler.text);
+
+                ////////
+                // Here you would typically send the PaymentRequest and PaymentRequestResponse to your backend so you can reference it later
+                // For example, if the player doesn't pay right away, you can still reference the order and invoice IDs later and know what the player wanted to buy
+                ////////
+
+                var urlPurchase = _isSandbox ? SandboxPurchasePayUrl : ProductionPurchasePayUrl;
+#if UNITY_STANDALONE_WIN || UNITY_STANDALONE_OSX
+                // Open the in-game web browser UI and load the payment URL
+                _webBrowserUI.transform.root.gameObject.SetActive(true);
+                yield return new WaitUntil(() => _isWebBrowserReady);
+                _webBrowserUI.browserClient?.LoadUrl($"{urlPurchase}{response.invoice_id}");
+#else
+                Application.OpenURL($"{urlPurchase}{response.invoice_id}");
+#endif
+                StartCoroutine(PollPurchaseResult(response.invoice_id, onPurchasePaymentSuccess, onPurchasePaymentFailure));
+            }
+
+            www.Dispose();
+            _purchaseRequestCart.Clear(); // Clear the cart after sending the request
+        }
+
+        private IEnumerator PollPurchaseResult(string invoiceId, Action<PurchaseDetailsResponse> onPaymentSuccess = null, Action<ErrorResponse> onPaymentFailure = null)
+        {
+            var purchaseDetails = new PurchaseDetailsBody
+            {
+                id = invoiceId
+            };
+
+            var url = _isSandbox ? SandboxPurchaseResultUrl : ProductionPurchaseResultUrl;
+
+            var body = JsonConvert.SerializeObject(purchaseDetails);
+            byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(body);
+
+            float timeout = 300f; // 5 minutes timeout - may take time to link ACH accounts
+            float elapsed = 0f;
+            while (elapsed < timeout)
+            {
+                using var www = new UnityEngine.Networking.UnityWebRequest(url, "POST");
+                www.downloadHandler = new UnityEngine.Networking.DownloadHandlerBuffer();
+                www.uploadHandler = new UnityEngine.Networking.UploadHandlerRaw(bodyRaw);
+                www.SetRequestHeader("Content-Type", "application/json");
+
+                yield return www.SendWebRequest();
+
+                if (www.result == UnityEngine.Networking.UnityWebRequest.Result.ConnectionError ||
+                    www.result == UnityEngine.Networking.UnityWebRequest.Result.ProtocolError)
+                {
+                    Debug.LogError($"Error polling payment result: {www.error}");
+                    var errorResponse = JsonConvert.DeserializeObject<ErrorResponse>(www.downloadHandler.text);
+#if UNITY_STANDALONE_WIN || UNITY_STANDALONE_OSX
+                    _webBrowserUI.transform.root.gameObject.SetActive(false);
+#endif
+                    onPaymentFailure?.Invoke(errorResponse);
+                    www.Dispose();
+                    yield break;
+                }
+
+                var response = JsonConvert.DeserializeObject<PurchaseDetailsResponse>(www.downloadHandler.text);
+                if (response.invoice.status == "PAID" || response.invoice.status == "PAYMENT_SUBMITTED") //if paid or payment submitted (ACH), or the web browser is closed
+                {
+                    Debug.Log($"Payment completed for Invoice ID: {response.invoice.id}");
+#if UNITY_STANDALONE_WIN || UNITY_STANDALONE_OSX
+                    _webBrowserUI.transform.root.gameObject.SetActive(false);
+#endif
+                    onPaymentSuccess?.Invoke(response);
+                    www.Dispose();
+                    break;
+                }
+#if UNITY_STANDALONE_WIN || UNITY_STANDALONE_OSX
+                else if (_webBrowserUI != null && _webBrowserUI.transform.root.gameObject.activeSelf == false)
+                {
+                    Debug.Log("Web browser closed or payment not completed.");
+                    var errorResponse = new ErrorResponse
+                    {
+                        message = "Purchase not completed or web browser closed.",
+                        error_code = "WEB_BROWSER_CLOSED"
+                    };
+                    onPaymentFailure?.Invoke(errorResponse);
+                    _webBrowserUI.transform.root.gameObject.SetActive(false);
+                    www.Dispose();
+                    break;
+                }
+#endif
+                www.Dispose();
+                yield return new WaitForSeconds(1f); // Poll every 1 second
+                elapsed += 1f;
+            }
         }
 
         public void CreatePurchaseOrderByUser()
