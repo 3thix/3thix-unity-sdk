@@ -322,7 +322,12 @@ namespace Ethix
             if (www.result == UnityEngine.Networking.UnityWebRequest.Result.ConnectionError ||
                 www.result == UnityEngine.Networking.UnityWebRequest.Result.ProtocolError)
             {
-                Debug.LogError($"Error sending purchase order request: {www.error}");
+                var errorResponse = JsonConvert.DeserializeObject<ErrorResponse>(www.downloadHandler.text);
+                Debug.LogError($"Error sending purchase order request: {errorResponse.message}");
+#if UNITY_STANDALONE_WIN || UNITY_STANDALONE_OSX
+                    _webBrowserUI.transform.root.gameObject.SetActive(false);
+#endif
+                onPurchasePaymentFailure?.Invoke(errorResponse);
             }
             else
             {
