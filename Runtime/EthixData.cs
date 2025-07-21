@@ -71,6 +71,12 @@ namespace Ethix
         [Serializable]
         public struct SyncUserRequest
         {
+            public List<SyncUserRequestData> users { get; set; }
+        }
+
+        [Serializable]
+        public struct SyncUserRequestData
+        {
             public string third_party_id { get; set; }
             public string first_name { get; set; }
             public string last_name { get; set; }
