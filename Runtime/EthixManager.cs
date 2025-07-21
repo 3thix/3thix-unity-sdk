@@ -21,11 +21,6 @@ namespace Ethix
         private List<PaymentRequestItem> _paymentRequestCart = new();
         private List<PurchaseRequestItem> _purchaseRequestCart = new();
 
-        private string _entityId = "";
-        public string ThirdPartyId => _thirdPartyId;
-        public string EntityId => _entityId;
-
-
 #if UNITY_STANDALONE_WIN || UNITY_STANDALONE_OSX
         private WebBrowserUIBasic _webBrowserUI;
         private bool _isWebBrowserReady;
@@ -71,7 +66,6 @@ namespace Ethix
             StartCoroutine(SendSyncUserRequest(syncUserRequest, response =>
             {
                 Debug.Log($"User synced successfully with Entity ID: {response.entity_id}");
-                _entityId = response.entity_id;
                 onRequestSuccess?.Invoke(response);
             }, error =>
             {
@@ -107,8 +101,7 @@ namespace Ethix
             else
             {
                 var response = JsonConvert.DeserializeObject<SyncUserResponse>(www.downloadHandler.text);
-                _entityId = response.entity_id;
-                Debug.Log($"User synced with Entity ID: {_entityId}");
+                Debug.Log($"User synced with Entity ID: {response.entity_id}");
                 onSuccess?.Invoke(response);
             }
 
@@ -286,11 +279,11 @@ namespace Ethix
             });
         }
 
-        public void CreatePurchaseOrder(Currencies destinationCurrency, Action<PurchaseDetailsResponse> onPurchasePaymentSuccess = null, Action<ErrorResponse> onPurchasePaymentFailure = null)
+        public void CreatePurchaseOrder(string entityId, Currencies destinationCurrency, Action<PurchaseDetailsResponse> onPurchasePaymentSuccess = null, Action<ErrorResponse> onPurchasePaymentFailure = null)
         {
             PurchaseRequest purchaseRequest = new()
             {
-                fulfillment_entity_id = _entityId,
+                fulfillment_entity_id = entityId,
                 destination_currency = destinationCurrency.ToString(),
                 carts = _purchaseRequestCart
             };
