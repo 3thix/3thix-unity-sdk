@@ -59,15 +59,20 @@ namespace Ethix
 
         public void SyncUserWithEthix(string playerId, string firstName = "", string lastName = "", string email = "", string phone = "", Action<SyncUserResponse> onRequestSuccess = null, Action<ErrorResponse> onRequestFailure = null)
         {
-            SyncUserRequest syncUserRequest = new();
-            syncUserRequest.users.Add(new SyncUserRequestData
+            SyncUserRequest syncUserRequest = new()
             {
-                third_party_id = playerId,
-                first_name = firstName,
-                last_name = lastName,
-                email = email,
-                phone = phone
-            });
+                users = new List<SyncUserRequestData>
+                {
+                    new SyncUserRequestData
+                    {
+                        third_party_id = playerId,
+                        first_name = firstName,
+                        last_name = lastName,
+                        email = email,
+                        phone = phone
+                    }
+                }
+            };
 
             StartCoroutine(SendSyncUserRequest(syncUserRequest, response =>
             {

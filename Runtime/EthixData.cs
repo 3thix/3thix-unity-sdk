@@ -84,7 +84,6 @@ namespace Ethix
             public string phone { get; set; }
         }
 
-
         [Serializable]
         public struct SyncUserResponse
         {
