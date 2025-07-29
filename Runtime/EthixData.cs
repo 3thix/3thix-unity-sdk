@@ -22,6 +22,9 @@ namespace Ethix
         //Sandbox User Sync
         public const string SandboxSyncUserUrl = "https://sandbox-api.3thix.com/entity/game/user/autosync";
 
+        //Sandbox Player Accounts
+        public const string SandboxPlayerAccountsUrl = "https://sandbox-api.3thix.com/account/managing/list";
+
 
 
         //Production Payments
@@ -36,6 +39,9 @@ namespace Ethix
 
         //Production User Sync
         public const string ProductionSyncUserUrl = "https://api.3thix.com/entity/game/user/autosync";
+
+        //Production Player Accounts
+        public const string ProductionPlayerAccountsUrl = "https://api.3thix.com/account/managing/list";
 
         public enum Rails
         {
@@ -67,7 +73,7 @@ namespace Ethix
             SOL
         }
 
-
+#region User Sync
         [Serializable]
         public struct SyncUserRequest
         {
@@ -90,7 +96,9 @@ namespace Ethix
             public string entity_id { get; set; }
             public string third_party_id { get; set; }
         }
+        #endregion
 
+#region Payments
         [Serializable]
         public struct PaymentRequest
         {
@@ -117,6 +125,9 @@ namespace Ethix
             public string invoice_currency { get; set; }
         }
 
+        #endregion
+
+#region Purchases
         [Serializable]
         public struct PurchaseRequest
         {
@@ -211,5 +222,36 @@ namespace Ethix
             public string message { get; set; }
             public string error_code { get; set; }
         }
+        #endregion
+
+        #region Player Accounts/Wallets
+
+        public class PlayerAccountsRequest
+        {
+            public string currency { get; set; } // "SOL"
+            public string entity_id { get; set; }
+        }
+        public class PlayerAccountsResponse
+        {
+            public List<Account> accounts { get; set; }
+            public int total { get; set; }
+        }
+        public class Account
+        {
+            public string id { get; set; }
+            public string owner_entity_id { get; set; }
+            public string manager_entity_id { get; set; }
+            public string name { get; set; }
+            public string rail_type { get; set; }
+            public string country { get; set; }
+            public string rail { get; set; }
+            public string currency { get; set; }
+            public string account_currency_id { get; set; }
+            public object currency_contract { get; set; }
+            public string effective_balance { get; set; }
+            public string icon_url { get; set; }
+            public object account_id { get; set; }
+        }
+        #endregion
     }
 }
