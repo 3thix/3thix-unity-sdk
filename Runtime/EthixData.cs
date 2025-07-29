@@ -91,14 +91,30 @@ namespace Ethix
         }
 
         [Serializable]
-        public struct SyncUserResponse
+        public class SyncUserResponse
+        {
+            public List<EntitiesCreated> entities_created { get; set; }
+            public List<EntitiesExisting> entities_existing { get; set; }
+        }
+
+        [Serializable]
+            public class EntitiesCreated
         {
             public string entity_id { get; set; }
             public string third_party_id { get; set; }
         }
+
+        [Serializable]
+        public class EntitiesExisting
+        {
+            public string entity_id { get; set; }
+            public string third_party_id { get; set; }
+        }
+
+
         #endregion
 
-#region Payments
+        #region Payments
         [Serializable]
         public struct PaymentRequest
         {
@@ -226,16 +242,22 @@ namespace Ethix
 
         #region Player Accounts/Wallets
 
+
+        [Serializable]
         public class PlayerAccountsRequest
         {
             public string currency { get; set; } // "SOL"
             public string entity_id { get; set; }
         }
+
+        [Serializable]
         public class PlayerAccountsResponse
         {
             public List<Account> accounts { get; set; }
             public int total { get; set; }
         }
+
+        [Serializable]
         public class Account
         {
             public string id { get; set; }
