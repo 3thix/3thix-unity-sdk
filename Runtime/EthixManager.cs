@@ -76,7 +76,7 @@ namespace Ethix
 
             StartCoroutine(SendSyncUserRequest(syncUserRequest, response =>
             {
-                Debug.Log($"User synced successfully with Entity ID: {response.entity_id}");
+                Debug.Log($"User synced successfully");
                 onRequestSuccess?.Invoke(response);
             }, error =>
             {
@@ -112,7 +112,6 @@ namespace Ethix
             else
             {
                 var response = JsonConvert.DeserializeObject<SyncUserResponse>(www.downloadHandler.text);
-                Debug.Log($"User synced with Entity ID: {response.entity_id}");
                 onSuccess?.Invoke(response);
             }
 
