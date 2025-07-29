@@ -437,5 +437,45 @@ namespace Ethix
         {
             //TODO
         }
+
+        public void GetPlayerAccounts(Currencies currency, string entityId, Action<PlayerAccountsResponse> onSuccess = null, Action<ErrorResponse> onFailure = null)
+        {
+            StartCoroutine(SendPlayerAccountsRequest(currency, entityId, onSuccess, onFailure));
+        }
+
+        private IEnumerator SendPlayerAccountsRequest(Currencies currency, string entityId, Action<PlayerAccountsResponse> onSuccess, Action<ErrorResponse> onFailure)
+        {
+            var url = _isSandbox ? SandboxPlayerAccountsUrl : ProductionPlayerAccountsUrl;
+            var apiKey = _isSandbox ? _sandboxApiKey : _productionApiKey;
+
+            var body = JsonConvert.SerializeObject(new PlayerAccountsRequest
+            {
+                currency = currency.ToString(),
+                entity_id = entityId
+            });
+
+            byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(body);
+
+            using var www = new UnityEngine.Networking.UnityWebRequest(url, "POST");
+            www.downloadHandler = new UnityEngine.Networking.DownloadHandlerBuffer();
+            www.uploadHandler = new UnityEngine.Networking.UploadHandlerRaw(bodyRaw);
+            www.SetRequestHeader("Content-Type", "application/json");
+            www.SetRequestHeader("X-Api-Key", apiKey);
+
+            yield return www.SendWebRequest();
+
+            if (www.result == UnityEngine.Networking.UnityWebRequest.Result.ConnectionError ||
+                www.result == UnityEngine.Networking.UnityWebRequest.Result.ProtocolError)
+            {
+                var errorResponse = JsonConvert.DeserializeObject<ErrorResponse>(www.downloadHandler.text);
+                onFailure?.Invoke(errorResponse);
+            }
+            else
+            {
+                var response = JsonConvert.DeserializeObject<PlayerAccountsResponse>(www.downloadHandler.text);
+                onSuccess?.Invoke(response);
+            }
+            www.Dispose();
+        }
     }
 }
